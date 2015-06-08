@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="time_chart_array">
+        <item>+3 hours</item>
+        <item>+6 hours</item>
+        <item>+9 hours</item>
+        <item>+12 hours</item>
+        <item>+15 hours</item>
+        <item>+18 hours</item>
+        <item>+21 hours</item>
+        <item>+24 hours</item>
+        <item>+27 hours</item>
+        <item>+30 hours</item>
+        <item>+33 hours</item>
+        <item>+36 hours</item>
+        <item>+39 hours</item>
+        <item>+42 hours</item>
+        <item>+45 hours</item>
+        <item>+48 hours</item>
+        <item>+51 hours</item>
+        <item>+54 hours</item>
+        <item>+57 hours</item>
+        <item>+60 hours</item>
+        <item>+63 hours</item>
+        <item>+66 hours</item>
+        <item>+69 hours</item>
+        <item>+72 hours</item>
+    </string-array>
+
+</resources>
