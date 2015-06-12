@@ -26,15 +26,6 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name="com.lth.antonlundborg.antonsprojekt.MapsActivity"
-            android:label="@string/title_activity_maps" >
-        </activity>
-        <activity
-            android:name="com.lth.antonlundborg.antonsprojekt.ChartActivity"
-            android:label="@string/title_activity_chart" >
-
-        </activity>
-        <activity
             android:name="com.lth.antonlundborg.antonsprojekt.MainActivity"
             android:label="@string/title_activity_main" >
             <intent-filter>
@@ -44,5 +35,8 @@
             </intent-filter>
         </activity>
     </application>
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true"/>
 
 </manifest>

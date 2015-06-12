@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 
+import com.google.android.gms.maps.MapView;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.accountswitcher.AccountHeader;
@@ -29,12 +30,34 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        initiateGoogleMaps();
         setupNavigationDrawer();
 
         fragmentManager = getSupportFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);
 
+        if (fragment == null) {
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.add(R.id.fragment_container, new HomeFragment());
+            fragmentTransaction.commit();
+        }
 
+    }
+
+    private void initiateGoogleMaps(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    MapView mv = new MapView(getApplicationContext());
+                    mv.onCreate(null);
+                    mv.onPause();
+                    mv.onDestroy();
+                }catch (Exception ignored){
+
+                }
+            }
+        }).start();
     }
 
     private void setupNavigationDrawer() {
@@ -96,14 +119,18 @@ public class MainActivity extends AppCompatActivity {
             drawer.closeDrawer();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             Fragment fragment;
-            if(i == 3) {
-                fragment = MapFragment.newInstance();
-                transaction.add(R.id.fragment_container, fragment);
+            if(i == 0){
+                fragment = new HomeFragment();
+                transaction.replace(R.id.fragment_container, fragment);
+            } else if(i == 2){
+                fragment = new ChartFragment();
+                transaction.replace(R.id.fragment_container, fragment);
+            } else if(i == 3) {
+                fragment = SmhiMapFragment.newInstance();
+                transaction.replace(R.id.fragment_container, fragment);
+            }
+                transaction.addToBackStack(null);
                 transaction.commit();
-            }
-            if(i == 1){
-
-            }
             return true;
         }
     }

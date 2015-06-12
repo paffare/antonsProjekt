@@ -1,15 +1,17 @@
 package com.lth.antonlundborg.antonsprojekt;
 
-import android.app.ListActivity;
+
+import android.app.Fragment;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ListFragment;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -22,7 +24,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 
-public class ChartActivity extends ListActivity implements AdapterView.OnItemSelectedListener, AbsListView.OnScrollListener{
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class ChartFragment extends ListFragment implements AdapterView.OnItemSelectedListener, AbsListView.OnScrollListener {
     private static final String chartUrl = "http://cdn.fmi.fi/marine-forecasts/products/wave-forecast-maps/wave";
     private static final String chartUrlEnd = ".gif";
     private String[] chartUrlNumber = {"03", "06", "09", "12", "15", "18", "21", "24", "27", "30", "33", "36", "39",
@@ -30,11 +35,15 @@ public class ChartActivity extends ListActivity implements AdapterView.OnItemSel
     private MyBitmapAdapter adapter;
     private Spinner spinner;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chart);
+    public ChartFragment() {
 
+    }
+
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_chart, container, false);
         ChartDownloader downloader;
         String[] urlAndIndex;
         for (int i = 0; i < chartUrlNumber.length; i++) {
@@ -43,16 +52,23 @@ public class ChartActivity extends ListActivity implements AdapterView.OnItemSel
             startAsyncTaskInParallel(downloader, urlAndIndex);
         }
 
-        adapter = new MyBitmapAdapter(this, chartUrlNumber.length);
+        adapter = new MyBitmapAdapter(getActivity(), chartUrlNumber.length);
         setListAdapter(adapter);
 
-        spinner = (Spinner) findViewById(R.id.time_chart_spinner);
-        ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(this,
+        spinner = (Spinner) v.findViewById(R.id.time_chart_spinner);
+        ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(getActivity(),
                 R.array.time_chart_array, android.R.layout.simple_spinner_item);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(arrayAdapter);
 
         spinner.setOnItemSelectedListener(this);
+
+        return v;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         getListView().setOnScrollListener(this);
     }
 
@@ -63,29 +79,6 @@ public class ChartActivity extends ListActivity implements AdapterView.OnItemSel
             task.execute(url);
         }
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_chart, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         Log.d("spinnerdebug", "onItemSelected called with position " + position);
@@ -120,7 +113,7 @@ public class ChartActivity extends ListActivity implements AdapterView.OnItemSel
                 inputStream = connection.getInputStream();
                 final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 final int index = Integer.parseInt(params[1]);
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         adapter.addBitmap(bitmap, index);
@@ -129,7 +122,7 @@ public class ChartActivity extends ListActivity implements AdapterView.OnItemSel
 
             } catch (FileNotFoundException e){
                 e.printStackTrace();
-                runOnUiThread(new Runnable(){
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         adapter.decreseSize();
@@ -141,4 +134,5 @@ public class ChartActivity extends ListActivity implements AdapterView.OnItemSel
             return null;
         }
     }
+
 }

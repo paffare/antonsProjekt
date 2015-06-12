@@ -1,7 +1,6 @@
 package com.lth.antonlundborg.antonsprojekt;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -19,6 +18,7 @@ import android.widget.ImageButton;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -36,62 +36,63 @@ import static com.lth.antonlundborg.antonsprojekt.Constants.STATION_WIND_DIRECTI
 import static com.lth.antonlundborg.antonsprojekt.Constants.STATION_WIND_SPEED;
 import static com.lth.antonlundborg.antonsprojekt.Constants.TABLE_NAME;
 
-public class MapFragment extends Fragment {
+public class SmhiMapFragment extends Fragment implements OnMapReadyCallback {
 
-
-    public static MapFragment newInstance() {
-        return new MapFragment();
-    }
-
-    public MapFragment() {
-        // Required empty public constructor
-    }
-
+    private final static String TAG = "MapFragment";
+    private static boolean firstTime = true;
     private GoogleMap mMap;
     private LatLngBounds swedenBounds;
     private ImageButton switchButton;
     private static final String PERIOD = "latest-hour";
     private static final String WIND_DIRECTION = "3";
     private static final String WIND_SPEED = "4";
-    private SMHIDatabase smhiDatabase;
+    private static SMHIDatabase smhiDatabase;
     public static String[] FROM = {STATION_NAME, STATION_LATITUDE, STATION_LONGITUDE, STATION_WIND_SPEED, STATION_WIND_DIRECTION};
-    ArrayList<String> smhiStations;
+    public static ArrayList<String> smhiStations;
+
+    public static SmhiMapFragment newInstance() {
+        return new SmhiMapFragment();
+    }
+
+    public SmhiMapFragment() {
+        // Required empty public constructor
+    }
 
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        View view = inflater.inflate(R.layout.fragment_map, container, false);
 
-        return inflater.inflate(R.layout.fragment_map, container, false);
-    }
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        setUpMapIfNeeded();
-        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-
-            @Override
-            public void onCameraChange(CameraPosition arg0) {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(swedenBounds, 10));
-                mMap.setOnCameraChangeListener(null);
-            }
-        });
-        CameraUpdateFactory.newLatLngBounds(swedenBounds, 1);
         switchButton = (ImageButton) getActivity().findViewById(R.id.switch_button);
-
-        swedenBounds = new LatLngBounds(new LatLng(55.001099, 11.10694), new LatLng(69.063141, 24.16707));
-
-
-        smhiDatabase = new SMHIDatabase(getActivity());
-        smhiStations = new ArrayList<>();
-        addStations();
-        Downloader downloader;
-        for (int i = 0; i < smhiStations.size(); i++) {
-            downloader = new Downloader();
-            startAsyncTaskInParallel(downloader, smhiStations.get(i));
+        if (firstTime) {
+            new Thread(new Runnable() {
+                public void run() {
+                    smhiDatabase = new SMHIDatabase(getActivity());
+                    addEvents();
+                    Downloader downloader;
+                    for (int i = 0; i < smhiStations.size(); i++) {
+                        downloader = new Downloader();
+                        startAsyncTaskInParallel(downloader, smhiStations.get(i));
+                    }
+                }
+            }).start();
+            firstTime = false;
+            Log.d(TAG, "Downloading from internet");
+        } else {
+            DatabaseAccess dbAcess = new DatabaseAccess();
+            dbAcess.execute();
+            Log.d(TAG, "Getting from Database");
         }
-        super.onActivityCreated(savedInstanceState);
+        return view;
     }
 
-    private void addStations() {
+    @Override
+    public void onResume(){
+        setUpMapIfNeeded();
+        super.onResume();
+    }
+
+    private void addEvents() {
+        smhiStations = new ArrayList<>();
         addEvent("Hallands Väderö A", "62260", 56.45, 12.55);
         addEvent("Väderöarna A", "81350", 58.58, 11.07);
         addEvent("Storön A", "163900", 65.70, 23.10);
@@ -131,6 +132,7 @@ public class MapFragment extends Fragment {
         addEvent("Hallands Väderö A", "62260", 56.45, 12.55);
     }
 
+
     private void addEvent(String name, String number, double latitude, double longitude) {
         smhiStations.add(number);
         SQLiteDatabase db = smhiDatabase.getWritableDatabase();
@@ -151,12 +153,6 @@ public class MapFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        setUpMapIfNeeded();
-    }
-
     private void setUpMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
@@ -166,9 +162,9 @@ public class MapFragment extends Fragment {
             } else {
                 supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
             }
-            mMap = supportMapFragment.getMap();
-            mMap.setMyLocationEnabled(true);
+            supportMapFragment.getMapAsync(this);
         }
+
     }
 
     public void onClick(View view) {
@@ -184,111 +180,137 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private class Downloader extends AsyncTask<String, Void, String> {
+    public void putAllValuesOnMap() {
+        Cursor cursor = getAllEvents();
+        Log.d(TAG, "Got cursor");
+        cursor.moveToFirst();
+        for (int i = 0; i < smhiStations.size(); i++) {
+            String stationName = cursor.getString(0);
+            LatLng latLng = new LatLng(cursor.getDouble(1), cursor.getDouble(2));
+            double windSpeed = cursor.getDouble(3);
+            double windDirection = cursor.getDouble(4);
+            putValueOnMap(stationName, latLng, windSpeed, windDirection);
+            Log.d(TAG, " published number " + i);
+            cursor.moveToNext();
+        }
+    }
+
+    public void putValueOnMap(final String stationName, LatLng latLng, double windSpeed, double windDirection) {
+        final String finalStationName = stationName;
+        final LatLng finalLatLng = latLng;
+        final String snippet = "Wind direction: " + windDirection + " Wind Speed: " + windSpeed;
+        final float rotation = (float) windDirection + 90;
+        final Bitmap wind = getIcon(windSpeed);
+        getActivity().runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                mMap.addMarker(new MarkerOptions().position(finalLatLng).title(finalStationName).snippet(snippet).rotation(rotation).icon(BitmapDescriptorFactory.fromBitmap(wind)));
+            }
+        });
+
+    }
+
+    public void putValueOnMap(String number) {
+        Cursor cursor = getEvent(number);
+        cursor.moveToFirst();
+        String stationName = cursor.getString(0);
+        LatLng latLng = new LatLng(cursor.getDouble(1), cursor.getDouble(2));
+        double windSpeed = cursor.getDouble(3);
+        double windDirection = cursor.getDouble(4);
+        putValueOnMap(stationName, latLng, windSpeed, windDirection);
+    }
+
+    public Cursor getAllEvents() {
+        SQLiteDatabase db = smhiDatabase.getReadableDatabase();
+        return db.query(TABLE_NAME, FROM, null, null, null, null, null);
+    }
+
+    private Cursor getEvent(String number) {
+        String WHERE = STATION_NUMBER + " = " + number;
+        SQLiteDatabase db = smhiDatabase.getReadableDatabase();
+        return db.query(TABLE_NAME, FROM, WHERE, null, null, null, null);
+    }
+
+    public Bitmap getIcon(double speed) {
+        int id = 0;
+        if (speed >= 0) {
+            id = R.drawable.vindpil0;
+        }
+        if (speed >= 2) {
+            id = R.drawable.vindpil2;
+        }
+        if (speed >= 5) {
+            id = R.drawable.vindpil5;
+        }
+        if (speed >= 7) {
+            id = R.drawable.vindpil7;
+        }
+        if (speed >= 10) {
+            id = R.drawable.vindpil10;
+        }
+        if (speed >= 12) {
+            id = R.drawable.vindpil12;
+        }
+        if (speed >= 15) {
+            id = R.drawable.vindpil15;
+        }
+        if (speed >= 20) {
+            id = R.drawable.vindpil20;
+        }
+        if (speed >= 25) {
+            id = R.drawable.vindpil25;
+        }
+        if (speed >= 32) {
+            id = R.drawable.vindpil32;
+        }
+
+        return BitmapFactory.decodeResource(getResources(), id);
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        mMap = map;
+        swedenBounds = new LatLngBounds(new LatLng(55.001099, 11.10694), new LatLng(69.063141, 24.16707));
+        map.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition arg0) {
+                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(swedenBounds, 10));
+                mMap.setOnCameraChangeListener(null);
+            }
+        });
+
+    }
+
+    private class DatabaseAccess extends AsyncTask<Void, Void, Void> {
 
         @Override
-        protected String doInBackground(String... params) {
+        protected Void doInBackground(Void... params) {
+            putAllValuesOnMap();
+            return null;
+        }
+    }
+
+    private class Downloader extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... params) {
             SMHIDownloader parser = new SMHIDownloader();
             SQLiteDatabase db = smhiDatabase.getWritableDatabase();
             ContentValues values = new ContentValues();
             try {
                 double direction = parser.getWindParameter(WIND_DIRECTION, params[0], PERIOD);
                 double speed = parser.getWindParameter(WIND_SPEED, params[0], PERIOD);
-                Log.d("speed & direction", Double.toString(speed) + Double.toString(direction));
-
                 values.put(STATION_WIND_DIRECTION, direction);
                 values.put(STATION_WIND_SPEED, speed);
                 String WHERE = STATION_NUMBER + " = " + params[0];
                 db.update(TABLE_NAME, values, WHERE, null);
+                putValueOnMap(params[0]);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            return params[0];
-        }
-
-        @Override
-        protected void onPostExecute(String number) {
-            Cursor cursor = getEvent(number);
-            cursor.moveToFirst();
-            String stationName = cursor.getString(0);
-            LatLng latLng = new LatLng(cursor.getDouble(1), cursor.getDouble(2));
-            double windSpeed = cursor.getDouble(3);
-            double windDirection = cursor.getDouble(4);
-
-            Log.d("from db ", stationName + " " + windSpeed + " " + windDirection);
-
-            String snippet = "Wind direction: " + windDirection + " Wind Speed: " + windSpeed;
-            float rotation = (float) windDirection + 90;
-            Bitmap wind = getIcon(windSpeed);
-            mMap.addMarker(new MarkerOptions().position(latLng).title(stationName).snippet(snippet).rotation(rotation).icon(BitmapDescriptorFactory.fromBitmap(wind)));
-        }
-
-        private Cursor getEvent(String number) {
-            String WHERE = STATION_NUMBER + " = " + number;
-            SQLiteDatabase db = smhiDatabase.getReadableDatabase();
-            return db.query(TABLE_NAME, FROM, WHERE, null, null, null, null);
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-
-        }
-
-        public Bitmap getIcon(double speed) {
-            int id = 0;
-            if (speed >= 0) {
-                id = R.drawable.vindpil0;
-            }
-            if (speed >= 2) {
-                id = R.drawable.vindpil2;
-            }
-            if (speed >= 5) {
-                id = R.drawable.vindpil5;
-            }
-            if (speed >= 7) {
-                id = R.drawable.vindpil7;
-            }
-            if (speed >= 10) {
-                id = R.drawable.vindpil10;
-            }
-            if (speed >= 12) {
-                id = R.drawable.vindpil12;
-            }
-            if (speed >= 15) {
-                id = R.drawable.vindpil15;
-            }
-            if (speed >= 20) {
-                id = R.drawable.vindpil20;
-            }
-            if (speed >= 25) {
-                id = R.drawable.vindpil25;
-            }
-            if (speed >= 32) {
-                id = R.drawable.vindpil32;
-            }
-
-            return BitmapFactory.decodeResource(getResources(), id);
+            return null;
         }
 
     }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-
-    }
-
-
-
 }

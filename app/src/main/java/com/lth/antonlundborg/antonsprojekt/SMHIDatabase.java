@@ -3,12 +3,15 @@ package com.lth.antonlundborg.antonsprojekt;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
 import static com.lth.antonlundborg.antonsprojekt.Constants.*;
 
 
 public class SMHIDatabase extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "smhi.db";
     private static final int DATABASE_VERSION = 1;
+    private String TAG = "Database";
 
 
     private static final String DICTIONARY_TABLE_CREATE =
@@ -27,6 +30,7 @@ public class SMHIDatabase extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Log.d(TAG, "Table dropped");
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
