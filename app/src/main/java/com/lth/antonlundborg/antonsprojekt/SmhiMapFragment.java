@@ -167,19 +167,6 @@ public class SmhiMapFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
-    public void onClick(View view) {
-
-        if (view.getId() == R.id.switch_button) {
-            if (mMap.getMapType() == GoogleMap.MAP_TYPE_NORMAL) {
-                mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-                switchButton.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_map_view));
-            } else {
-                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                switchButton.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_satellite_view));
-            }
-        }
-    }
-
     public void putAllValuesOnMap() {
         Cursor cursor = getAllEvents();
         Log.d(TAG, "Got cursor");
@@ -202,13 +189,11 @@ public class SmhiMapFragment extends Fragment implements OnMapReadyCallback {
         final float rotation = (float) windDirection + 90;
         final Bitmap wind = getIcon(windSpeed);
         getActivity().runOnUiThread(new Runnable() {
-
             @Override
             public void run() {
                 mMap.addMarker(new MarkerOptions().position(finalLatLng).title(finalStationName).snippet(snippet).rotation(rotation).icon(BitmapDescriptorFactory.fromBitmap(wind)));
             }
         });
-
     }
 
     public void putValueOnMap(String number) {

@@ -3,6 +3,7 @@ package com.lth.antonlundborg.antonsprojekt;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +19,7 @@ public class MyBitmapAdapter extends BaseAdapter {
     public MyBitmapAdapter(Context context, int size){
         this.size = size;
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-        final int cacheSize = maxMemory / 8;
+        final int cacheSize = maxMemory / 4;
 
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
             @Override
@@ -77,6 +78,7 @@ public class MyBitmapAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        Log.d("Adapter", "getView()" + position);
         ViewHolder holder;
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.row, null);

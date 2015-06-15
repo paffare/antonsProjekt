@@ -19,7 +19,9 @@
     <string name="chart_button">Wave charts</string>
     <string name="wind_button">Wind map</string>
     <string name="drawer_item_home">Home</string>
-    <string name="drawer_item_charts">Wave chart</string>
+    <string name="drawer_item_charts">Wave charts</string>
+    <string name="drawer_item_dmi">DMI</string>
+    <string name="drawer_item_baltic">Baltic sea portal</string>
     <string name="drawer_item_wind">Wind map</string>
 
 

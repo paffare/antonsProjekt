@@ -1,5 +1,6 @@
 package com.lth.antonlundborg.antonsprojekt;
 
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,6 +14,8 @@ import android.view.View;
 import android.widget.AdapterView;
 
 import com.google.android.gms.maps.MapView;
+import com.lth.antonlundborg.antonsprojekt.Charts.BalticSeaPortalFragment;
+import com.lth.antonlundborg.antonsprojekt.Charts.DmiFragment;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.accountswitcher.AccountHeader;
@@ -20,7 +23,11 @@ import com.mikepenz.materialdrawer.accountswitcher.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
+import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 public class MainActivity extends AppCompatActivity {
     private FragmentManager fragmentManager;
@@ -41,10 +48,20 @@ public class MainActivity extends AppCompatActivity {
             fragmentTransaction.add(R.id.fragment_container, new HomeFragment());
             fragmentTransaction.commit();
         }
+        DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
+                .cacheOnDisk(true)
+                .bitmapConfig(Bitmap.Config.RGB_565)
+                .showImageOnLoading(R.drawable.loading)
+                .build();
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
+                .defaultDisplayImageOptions(defaultOptions)
+                .build();
+        ImageLoader.getInstance().init(config);
+        ImageLoader.getInstance().clearDiskCache();
 
     }
 
-    private void initiateGoogleMaps(){
+    private void initiateGoogleMaps() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -53,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                     mv.onCreate(null);
                     mv.onPause();
                     mv.onDestroy();
-                }catch (Exception ignored){
+                } catch (Exception ignored) {
 
                 }
             }
@@ -76,8 +93,10 @@ public class MainActivity extends AppCompatActivity {
                 .withToolbar(toolbar)
                 .addDrawerItems(
                         new PrimaryDrawerItem().withName(R.string.drawer_item_home),
+                        new SectionDrawerItem().withName(R.string.drawer_item_charts),
+                        new SecondaryDrawerItem().withName(R.string.drawer_item_baltic),
+                        new SecondaryDrawerItem().withName(R.string.drawer_item_dmi),
                         new DividerDrawerItem(),
-                        new SecondaryDrawerItem().withName(R.string.drawer_item_charts),
                         new SecondaryDrawerItem().withName(R.string.drawer_item_wind)
                 )
                 .withOnDrawerItemClickListener(new MyOnDrawerItemClickListener())
@@ -112,25 +131,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private class MyOnDrawerItemClickListener implements Drawer.OnDrawerItemClickListener{
+    private class MyOnDrawerItemClickListener implements Drawer.OnDrawerItemClickListener {
 
         @Override
         public boolean onItemClick(AdapterView<?> adapterView, View view, int i, long l, IDrawerItem iDrawerItem) {
             drawer.closeDrawer();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             Fragment fragment;
-            if(i == 0){
+            if (i == 0) {
                 fragment = new HomeFragment();
                 transaction.replace(R.id.fragment_container, fragment);
-            } else if(i == 2){
-                fragment = new ChartFragment();
+            } else if (i == 2) {
+                ImageLoader.getInstance().clearDiskCache();
+                fragment = new BalticSeaPortalFragment();
                 transaction.replace(R.id.fragment_container, fragment);
-            } else if(i == 3) {
+            } else if (i == 3) {
+                ImageLoader.getInstance().clearDiskCache();
+                fragment = new DmiFragment();
+                transaction.replace(R.id.fragment_container, fragment);
+            } else if (i == 5) {
                 fragment = SmhiMapFragment.newInstance();
                 transaction.replace(R.id.fragment_container, fragment);
             }
-                transaction.addToBackStack(null);
-                transaction.commit();
+            transaction.addToBackStack(null);
+            transaction.commit();
             return true;
         }
     }
