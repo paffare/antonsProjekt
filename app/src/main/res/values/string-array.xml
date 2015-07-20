@@ -149,5 +149,9 @@
         <item>119 hours</item>
         <item>120 hours</item>
     </string-array>
+    <string-array name="dmi_action_list">
+        <item>Baltic sea</item>
+        <item>West Coast</item>
+    </string-array>
 
 </resources>

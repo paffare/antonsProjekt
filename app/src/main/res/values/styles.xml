@@ -1,17 +1,27 @@
 <resources>
 
-    <style name="MyTheme" parent="MyTheme.Base">
-    </style>
+    <style name="MyTheme" parent="MyTheme.Base"></style>
+
     <style name="MyTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-    <!-- Set theme colors from http://www.google.com/design/spec/style/color.html#color-color-palette-->
-    <!-- colorPrimary is used for the default action bar background -->
-    <item name="colorPrimary">#2196F3</item>
-    <!-- colorPrimaryDark is used for the status bar -->
-    <item name="colorPrimaryDark">#1976D2</item>
-    <!-- colorAccent is used as the default value for colorControlActivated
-         which is used to tint widgets -->
-    <item name="colorAccent">#FF4081</item>
+        <!-- Set theme colors from http://www.google.com/design/spec/style/color.html#color-color-palette-->
+        <!-- colorPrimary is used for the default action bar background -->
+        <item name="colorPrimary">#2196F3</item>
+        <!-- colorPrimaryDark is used for the status bar -->
+        <item name="colorPrimaryDark">#1976D2</item>
+        <!-- colorAccent is used as the default value for colorControlActivated
+             which is used to tint widgets -->
+        <item name="colorAccent">#FF4081</item>
+
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:popupBackground">#1976D2</item>
+        <item name="android:itemBackground">#1976D2</item>
+    </style>
+
+    <style name="myDropDownTheme" parent="Widget.AppCompat.Light.DropDownItem.Spinner">
+        <item name="android:background">#FFFFFF</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:popupBackground">#1976D2</item>
     </style>
 </resources>

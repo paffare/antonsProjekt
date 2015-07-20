@@ -7,8 +7,8 @@ import android.provider.BaseColumns;
  */
 public interface Constants extends BaseColumns {
 
-    static final String TABLE_NAME = "Wind";
-    public static final String DATABASE_ID = "_id integer primary key";
+    static String TABLE_NAME = "Wind";
+    public static String DATABASE_ID = "_id integer primary key";
 
     //Columns in smhi database
     public static final String STATION_NAME = "name";

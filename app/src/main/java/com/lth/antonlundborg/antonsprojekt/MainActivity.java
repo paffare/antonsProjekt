@@ -32,6 +32,7 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 public class MainActivity extends AppCompatActivity {
     private FragmentManager fragmentManager;
     private Drawer drawer;
+    private int place = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,10 +52,11 @@ public class MainActivity extends AppCompatActivity {
         DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
                 .cacheOnDisk(true)
                 .bitmapConfig(Bitmap.Config.RGB_565)
-                .showImageOnLoading(R.drawable.loading)
+
                 .build();
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
                 .defaultDisplayImageOptions(defaultOptions)
+
                 .build();
         ImageLoader.getInstance().init(config);
         ImageLoader.getInstance().clearDiskCache();
@@ -147,7 +149,10 @@ public class MainActivity extends AppCompatActivity {
                 transaction.replace(R.id.fragment_container, fragment);
             } else if (i == 3) {
                 ImageLoader.getInstance().clearDiskCache();
+                Bundle args = new Bundle();
+                args.putInt("place", place);
                 fragment = new DmiFragment();
+                fragment.setArguments(args);
                 transaction.replace(R.id.fragment_container, fragment);
             } else if (i == 5) {
                 fragment = SmhiMapFragment.newInstance();

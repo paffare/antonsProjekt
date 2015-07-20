@@ -1,6 +1,7 @@
 package com.lth.antonlundborg.antonsprojekt.Charts;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,12 +16,14 @@ public class ChartAdapter extends BaseAdapter {
     private String[] urlNumbers;
     private String urlStart;
     private String urlEnd;
+    ImageLoader imageLoader;
 
     public ChartAdapter(Context context, String urlStart, String[] urlNumbers, String urlEnd) {
         this.inflater = LayoutInflater.from(context);
         this.urlStart = urlStart;
         this.urlNumbers = urlNumbers;
         this.urlEnd = urlEnd;
+        imageLoader = ImageLoader.getInstance();
     }
 
     @Override
@@ -40,6 +43,7 @@ public class ChartAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View recycled, ViewGroup container) {
+        Log.d("getView()", "getView() called  " + position);
         final View imageLayout;
         if (recycled == null) {
             imageLayout = inflater.inflate(R.layout.row,
@@ -49,7 +53,7 @@ public class ChartAdapter extends BaseAdapter {
         }
         String url = getItem(position);
         final ImageView imageView = (ImageView) imageLayout.findViewById(R.id.chartImageView);
-        ImageLoader.getInstance().displayImage(url, imageView);
+        imageLoader.displayImage(url, imageView);
         return imageView;
     }
 }

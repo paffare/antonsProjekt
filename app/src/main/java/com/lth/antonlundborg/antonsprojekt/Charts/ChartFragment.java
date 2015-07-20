@@ -3,8 +3,10 @@ package com.lth.antonlundborg.antonsprojekt.Charts;
 
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -16,9 +18,11 @@ import android.widget.Spinner;
 import com.lth.antonlundborg.antonsprojekt.R;
 
 
-public abstract class ChartFragment extends ListFragment implements AbsListView.OnScrollListener, AdapterView.OnItemSelectedListener {
+public abstract class ChartFragment extends ListFragment implements AbsListView.OnScrollListener, AdapterView.OnItemSelectedListener, Spinner.OnTouchListener {
     protected BaseAdapter adapter;
     protected Spinner spinner;
+    private Boolean clickedSpinner = false;
+    protected Toolbar toolbar;
 
     public ChartFragment() {
         // Required empty public constructor
@@ -28,12 +32,17 @@ public abstract class ChartFragment extends ListFragment implements AbsListView.
                              Bundle savedInstanceState) {
         View v = inflater.inflate(getLayoutId(), container, false);
         spinner = (Spinner) v.findViewById(R.id.time_chart_spinner);
+        toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+
+
 
         ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(getActivity(),
-                getSpinnerArrayId(), android.R.layout.simple_spinner_item);
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                getSpinnerArrayId(), R.layout.spinner_item);
+
+        arrayAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinner.setAdapter(arrayAdapter);
         spinner.setOnItemSelectedListener(this);
+        spinner.setOnTouchListener(this);
 
         adapter = new ChartAdapter(getActivity(), getUrlStart() ,getUrlNumbers(), getUrlEnd());
         setListAdapter(adapter);
@@ -62,23 +71,30 @@ public abstract class ChartFragment extends ListFragment implements AbsListView.
     }
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        Log.d("spinnerdebug", "onItemSelected called with position " + position);
-        if(spinner.getTag(R.id.pos) != position){
+        if(clickedSpinner == true){
+            Log.d("spinnerdebug", "onItemSelected called with position " + position);
             getListView().setSelection(position);
+            clickedSpinner = false;
         }
     }
 
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        spinner.setTag(R.id.pos, firstVisibleItem);
         spinner.setSelection(firstVisibleItem);
     }
 
     @Override
-    public void onNothingSelected(AdapterView<?> parent) { }
+    public void onNothingSelected(AdapterView<?> parent) {
+        clickedSpinner = false;
+    }
 
     @Override
     public void onScrollStateChanged(AbsListView view, int scrollState) {}
 
 
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        clickedSpinner = true;
+        return false;
+    }
 }

@@ -1,15 +1,69 @@
 package com.lth.antonlundborg.antonsprojekt.Charts;
 
 
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.SpinnerAdapter;
+
 import com.lth.antonlundborg.antonsprojekt.R;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class DmiFragment extends ChartFragment {
 
-    public DmiFragment() {}
+    private int baltic = 0;
+    private int westCoast = 1;
+    private int place;
+    private boolean firstTime = true;
+
+    public DmiFragment() {
+
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        place = getArguments().getInt("place");
+        SpinnerAdapter spinnerAdapter = ArrayAdapter.createFromResource(getActivity(),
+                R.array.dmi_action_list, android.R.layout.simple_spinner_dropdown_item);
+
+        ActionBar.OnNavigationListener onNavigationListener = new ActionBar.OnNavigationListener() {
+            String[] strings = getResources().getStringArray(R.array.dmi_action_list);
+
+            @Override
+            public boolean onNavigationItemSelected(int position, long itemId) {
+                if(firstTime == true || position == place){
+                    firstTime = false;
+                    return true;
+                }
+                ImageLoader.getInstance().clearDiskCache();
+                Log.d("Navigation", "Navigation selected");
+                Bundle args = new Bundle();
+                args.putInt("place", position);
+                Fragment fragment = new DmiFragment();
+                fragment.setArguments(args);
+                FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.fragment_container, fragment, strings[position]);
+                ft.commit();
+                return true;
+            }
+        };
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+        actionBar.setListNavigationCallbacks(spinnerAdapter, onNavigationListener);
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
 
     @Override
     protected int getLayoutId() {
-        return R.layout.fragment_chart_dmi;
+        return R.layout.fragment_chart;
     }
 
     @Override
@@ -19,7 +73,13 @@ public class DmiFragment extends ChartFragment {
 
     @Override
     public String getUrlStart() {
-        return "http://ocean.dmi.dk/anim/plots/hs.ba.";
+        if (place == baltic) {
+            return "http://ocean.dmi.dk/anim/plots/hs.ba.";
+        } else if (place == westCoast) {
+            return "http://ocean.dmi.dk/anim/plots/hs.idf.";
+        } else {
+            return "";
+        }
     }
 
     @Override
