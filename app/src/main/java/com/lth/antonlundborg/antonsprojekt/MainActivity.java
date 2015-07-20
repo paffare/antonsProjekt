@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -146,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (i == 2) {
                 ImageLoader.getInstance().clearDiskCache();
                 fragment = new BalticSeaPortalFragment();
+                getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
                 transaction.replace(R.id.fragment_container, fragment);
             } else if (i == 3) {
                 ImageLoader.getInstance().clearDiskCache();

@@ -27,10 +27,12 @@ public class DmiFragment extends ChartFragment {
 
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         place = getArguments().getInt("place");
+
         SpinnerAdapter spinnerAdapter = ArrayAdapter.createFromResource(getActivity(),
                 R.array.dmi_action_list, android.R.layout.simple_spinner_dropdown_item);
 
@@ -58,7 +60,13 @@ public class DmiFragment extends ChartFragment {
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
         actionBar.setListNavigationCallbacks(spinnerAdapter, onNavigationListener);
+        actionBar.setSelectedNavigationItem(place);
         return super.onCreateView(inflater, container, savedInstanceState);
+    }
+    @Override
+    public void onDetach(){
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        super.onDetach();
     }
 
     @Override
